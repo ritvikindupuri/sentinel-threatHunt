@@ -1,4 +1,4 @@
-# 🛡️ Enterprise-Grade Agentic AI Threat Hunting System
+#  Enterprise-Grade Agentic AI Threat Hunting System
 
 ## Executive Summary
 This project is a production-ready **Security Operations Center (SOC) automation platform** that leverages **Multi-AI Consensus** to detect, analyze, and respond to cybersecurity threats.
@@ -14,7 +14,7 @@ The workflow operates on a 15-minute polling cycle, ensuring near real-time dete
   <b>Figure 1: Triple-Model Consensus Workflow Architecture</b>
 </p>
 
-## 🚀 Usage: How to Import
+##  Usage: How to Import
 To deploy this system in your own n8n instance:
 1.  Download the `.json` workflow file included in this repository.
 2.  Open your n8n workspace.
@@ -24,7 +24,7 @@ To deploy this system in your own n8n instance:
 
 ---
 
-## 🏗️ Detailed Workflow Breakdown
+##  Detailed Workflow Breakdown
 
 ### Phase 1: Dual-Trigger Log Ingestion
 * **1.1 Scheduled Polling:** Runs every 15 minutes to pull the latest batch of logs, ensuring consistent monitoring even if push notifications fail.
@@ -61,7 +61,7 @@ The system splits events and sends them to three distinct "AI Agents" simultaneo
 
 ---
 
-## 🔧 Detailed Credential Setup Guide
+##  Detailed Credential Setup Guide
 
 ### Step 1: Azure & Microsoft Sentinel
 1.  **Create Service Principal:** In Azure AD, register a new app ("n8n-threat-hunting"). Copy the `Application (client) ID` and `Directory (tenant) ID`.
@@ -121,8 +121,12 @@ The system splits events and sends them to three distinct "AI Agents" simultaneo
 
 ---
 
-## 📊 Expected Outcomes
-* **Reduced False Positives:** Multi-model consensus reduces noise by estimated **70-80%** compared to single-model systems.
-* **Faster Response:** Automated escalation cuts incident triage time from hours to **minutes**.
-* **Compliance:** Provides a full, immutable audit trail compatible with **SOC 2** and **ISO 27001** requirements.
+##  Expected Outcomes
+* **Real-Time Detection:** The 15-minute polling cycle ensures near real-time threat detection, capturing indicators before they can escalate into breaches.
+* **Reduced False Positives:** Multi-model consensus (GPT-4 + Claude + Gemini) reduces alert noise by an estimated **70-80%** compared to single-model systems.
+* **Faster Response:** Automated escalation cuts incident triage time from **hours to minutes**, allowing analysts to focus on remediation rather than investigation.
+
+* **Compliance & Audit:** Provides a full, immutable audit trail compatible with **SOC 2**, **ISO 27001**, and **GDPR** requirements.
+* **Executive Visibility:** Daily summaries provide leadership with actionable ROI metrics without requiring dashboard access.
+* **Enterprise Readiness:** This architecture represents the level of security automation deployed by Fortune 500 companies in production environments.
 * **Executive Visibility:** Daily summaries provide leadership with actionable ROI metrics without requiring dashboard access.
