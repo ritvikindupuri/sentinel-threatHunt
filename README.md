@@ -21,7 +21,7 @@ To deploy this system in your own n8n instance:
 2.  Open your n8n workspace.
 3.  Click the **three dots (•••)** in the top right corner of the canvas.
 4.  Select **"Import from File"** and upload the JSON file.
-5.  Follow the *Detailed Credential Setup Guide* below to configure your Azure, AI, and Database connections.
+5.  Follow the *Detailed Credential Setup Guide* below to configure your connections.
 
 ---
 
@@ -70,29 +70,77 @@ To eliminate AI hallucinations and false positives, the system acts as a judge o
 
 ## 🔧 Detailed Credential Setup Guide
 
-### Step 1: Azure & Microsoft Sentinel
-1.  **Create Service Principal:** In Azure AD, register a new app ("n8n-threat-hunting"). Copy the `Application (client) ID` and `Directory (tenant) ID`.
-2.  **Generate Secret:** Create a Client Secret and copy the value immediately.
-3.  **Grant Permissions:** In your Sentinel Workspace IAM, assign the **"Microsoft Sentinel Reader"** role to your app.
-4.  **n8n Auth:** Create an `OAuth2 API` credential in n8n using these details.
+### Step 1: Microsoft Azure & Sentinel (Critical)
+**1. Register the Application:**
+* Go to **Azure Portal** > **Microsoft Entra ID** (formerly Azure AD).
+* Select **App registrations** > **New registration**.
+* Name: `n8n-sentinel-automation`.
+* Supported account types: *Accounts in this organizational directory only*.
+* Click **Register**.
+* **Copy & Save:** `Application (client) ID` and `Directory (tenant) ID`.
 
-### Step 2: Multi-AI API Keys
-1.  **OpenAI:** Generate key at `platform.openai.com`. Add as an OpenAI credential. Ensure the agent is set to `gpt-4-turbo`.
-2.  **Anthropic:** Generate key at `console.anthropic.com`. Add as Anthropic credential. Set to `claude-3-opus`.
-3.  **Google Gemini:** Generate key at `makersuite.google.com`. Add as Google AI credential. Set to `gemini-1.5-pro`.
+**2. Generate the Secret:**
+* In your new app, go to **Certificates & secrets** > **Client secrets** > **New client secret**.
+* Description: `n8n-key`. Expires: *12 months*.
+* **Copy & Save:** The **Value** (not the Secret ID). You will not see this again.
+
+**3. Grant Sentinel Permissions:**
+* Go to your **Log Analytics Workspace** (where Sentinel is connected).
+* Select **Access control (IAM)** > **Add** > **Add role assignment**.
+* Role: **Microsoft Sentinel Reader**.
+* Members: Select the `n8n-sentinel-automation` service principal you just created.
+* Click **Review + assign**.
+
+**4. Configure in n8n:**
+* Create a new Credential type: **Microsoft Azure**.
+* `Client ID`: Paste *Application (client) ID*.
+* `Client Secret`: Paste the Secret *Value*.
+* `Tenant ID`: Paste *Directory (tenant) ID*.
+
+### Step 2: AI Model API Keys
+**1. OpenAI (GPT-4):**
+* Go to `platform.openai.com` > **API keys**.
+* Create new key named `n8n-gpt4`.
+* In n8n, create **OpenAI** credential and paste the key.
+
+**2. Anthropic (Claude):**
+* Go to `console.anthropic.com` > **Settings** > **API Keys**.
+* Create key named `n8n-claude`.
+* In n8n, create **Anthropic** credential and paste the key.
+
+**3. Google Gemini:**
+* Go to `aistudio.google.com` > **Get API key**.
+* Create key in a new project.
+* In n8n, create **Google AI** credential and paste the key.
 
 ### Step 3: Vector Database (Pinecone)
-1.  Create an index named `threat-intelligence` with **1536 dimensions** (Cosine metric) to support OpenAI embeddings.
-2.  Add your API Key and Environment (e.g., `us-west1-gcp`) to n8n and link it to the *Historical Threat Intelligence DB* node.
+* Go to `app.pinecone.io`.
+* Create Index: Name `threat-intelligence`, Dimensions **1536** (Critical for OpenAI compatibility), Metric **Cosine**.
+* Go to **API Keys** > Copy the Key.
+* In n8n, create **Pinecone** credential. Enter the API Key.
 
 ### Step 4: Threat Intelligence Tools
-* **VirusTotal:** Get API Key from your profile -> Configure in n8n as Header Auth (`x-apikey`).
-* **AbuseIPDB:** Get API Key -> Configure in n8n as Header Auth (`Key: [Your_Key]`).
+**1. VirusTotal:**
+* Login to VirusTotal > Click Profile Icon > **API Key**.
+* In n8n, use **Header Auth**. Name: `x-apikey`, Value: `[Your_VT_Key]`.
 
-### Step 5: Communications & Database
-* **Slack / Teams:** Add OAuth tokens or webhook URLs to the respective SOC/IR alert nodes.
-* **Email:** Use standard SMTP credentials or Gmail OAuth2 for the CISO notification nodes.
-* **PostgreSQL:** Create a database (`threat_intelligence`) and table to house `event_id`, `severity`, `ai_consensus`, and `indicators`. Link the credentials to the *Store Threat Intelligence* node.
+**2. AbuseIPDB:**
+* Login to AbuseIPDB > **API** tab > **Create Key**.
+* In n8n, use **Header Auth**. Name: `Key`, Value: `[Your_AbuseIPDB_Key]`.
+
+### Step 5: Database (PostgreSQL)
+* Run this SQL command in your Postgres instance to create the required schema:
+    ```sql
+    CREATE TABLE threat_intelligence (
+        id SERIAL PRIMARY KEY,
+        event_id TEXT UNIQUE NOT NULL,
+        severity TEXT,
+        consensus_score NUMERIC,
+        ai_analysis JSONB,
+        timestamp TIMESTAMP DEFAULT NOW()
+    );
+    ```
+* In n8n, create **Postgres** credential with your Host, User, Password, and Database name.
 
 ---
 
