@@ -10,7 +10,7 @@ Instead of relying on a single Large Language Model (LLM) which can hallucinate 
 The workflow is highly modular, moving from deterministic log filtering into non-deterministic AI analysis, and back into deterministic alerting and reporting.
 
 <p align="center">
-  <img src=".assets/image_db52bf.png" alt="Multi-AI Threat Hunting Architecture" width="850"/>
+  <img src=".assets/Screenshot 2026-02-07 143313.png" alt="Multi-AI Threat Hunting Architecture" width="850"/>
   <br>
   <b>Figure 1: Triple-Model Consensus Workflow Architecture</b>
 </p>
