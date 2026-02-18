@@ -10,7 +10,7 @@ Instead of relying on a single Large Language Model (LLM) which can hallucinate 
 The workflow is highly modular, moving from deterministic log filtering into non-deterministic AI analysis, and back into deterministic alerting and reporting.
 
 <p align="center">
-  <img src=".assets/Screenshot 2026-02-07 143313.png" alt="Multi-AI Threat Hunting Architecture" width="850"/>
+  <img src=".assets/image_db52bf.png" alt="Multi-AI Threat Hunting Architecture" width="850"/>
   <br>
   <b>Figure 1: Triple-Model Consensus Workflow Architecture</b>
 </p>
@@ -21,7 +21,7 @@ To deploy this system in your own n8n instance:
 2.  Open your n8n workspace.
 3.  Click the **three dots (•••)** in the top right corner of the canvas.
 4.  Select **"Import from File"** and upload the JSON file.
-5.  Configure your Microsoft Azure, OpenAI, Anthropic, Google, and Slack/Email credentials.
+5.  Follow the *Detailed Credential Setup Guide* below to configure your Azure, AI, and Database connections.
 
 ---
 
@@ -31,7 +31,7 @@ To deploy this system in your own n8n instance:
 The pipeline captures and sanitizes raw telemetry to ensure the AI agents only spend compute resources on actionable anomalies.
 * **Poll Sentinel Logs / Real-time Sentinel Events:** Dual triggers ensure high availability. The system runs on a polling schedule while simultaneously listening for real-time webhook push events from Azure.
 * **Workflow Configuration & Fetch Sentinel Security Logs:** Standardizes API parameters and retrieves the latest security event payloads from the Sentinel workspace.
-* **Normalize Security Events & Filter High-Risk Events:** Cleans the raw JSON schema and drops low-level noise, advancing only critical indicators.
+* **Normalize Security Events & Filter High-Risk Events:** Cleans the raw JSON schema and drops low-level noise, forwarding only critical indicators.
 * **Split Events for Parallel AI Analysis:** This node duplicates the filtered payload, dispatching it concurrently to the three separate AI agents.
 
 ### 🧠 FLOW 2: Parallel Multi-Agent Analysis
@@ -65,6 +65,34 @@ To eliminate AI hallucinations and false positives, the system acts as a judge o
 * **Store Threat Intelligence:** Parses the finalized *Prepare Threat Intelligence Record* and writes it to a persistent database.
 * **Daily Executive Summary Generation:** An automated sequence (*Aggregate Daily Threat Metrics* ➔ *Calculate Threat Statistics*) compiles a 24-hour retrospective.
 * **Report Delivery:** The *Format Executive Report* node packages the metrics into an HTML brief and dispatches it via *Send Daily Executive Summary*, giving leadership visibility without requiring SIEM dashboard access.
+
+---
+
+## 🔧 Detailed Credential Setup Guide
+
+### Step 1: Azure & Microsoft Sentinel
+1.  **Create Service Principal:** In Azure AD, register a new app ("n8n-threat-hunting"). Copy the `Application (client) ID` and `Directory (tenant) ID`.
+2.  **Generate Secret:** Create a Client Secret and copy the value immediately.
+3.  **Grant Permissions:** In your Sentinel Workspace IAM, assign the **"Microsoft Sentinel Reader"** role to your app.
+4.  **n8n Auth:** Create an `OAuth2 API` credential in n8n using these details.
+
+### Step 2: Multi-AI API Keys
+1.  **OpenAI:** Generate key at `platform.openai.com`. Add as an OpenAI credential. Ensure the agent is set to `gpt-4-turbo`.
+2.  **Anthropic:** Generate key at `console.anthropic.com`. Add as Anthropic credential. Set to `claude-3-opus`.
+3.  **Google Gemini:** Generate key at `makersuite.google.com`. Add as Google AI credential. Set to `gemini-1.5-pro`.
+
+### Step 3: Vector Database (Pinecone)
+1.  Create an index named `threat-intelligence` with **1536 dimensions** (Cosine metric) to support OpenAI embeddings.
+2.  Add your API Key and Environment (e.g., `us-west1-gcp`) to n8n and link it to the *Historical Threat Intelligence DB* node.
+
+### Step 4: Threat Intelligence Tools
+* **VirusTotal:** Get API Key from your profile -> Configure in n8n as Header Auth (`x-apikey`).
+* **AbuseIPDB:** Get API Key -> Configure in n8n as Header Auth (`Key: [Your_Key]`).
+
+### Step 5: Communications & Database
+* **Slack / Teams:** Add OAuth tokens or webhook URLs to the respective SOC/IR alert nodes.
+* **Email:** Use standard SMTP credentials or Gmail OAuth2 for the CISO notification nodes.
+* **PostgreSQL:** Create a database (`threat_intelligence`) and table to house `event_id`, `severity`, `ai_consensus`, and `indicators`. Link the credentials to the *Store Threat Intelligence* node.
 
 ---
 
